@@ -1,4 +1,4 @@
-FROM alidron/python-openzwave:0.2.6
+FROM alidron/python-openzwave:master
 MAINTAINER Axel Voitier <axel.voitier@gmail.com>
 
 # RUN pip install prospector

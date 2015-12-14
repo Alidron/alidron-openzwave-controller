@@ -1,4 +1,6 @@
+import binascii
 import logging
+import os
 import signal
 import sys
 from functools import partial
@@ -31,7 +33,9 @@ class AlidronOZW(object):
 
         self.options = ZWaveOption(
             device,
-            config_path='/usr/src/python-openzwave-0.2.6/openzwave/config',
+            #config_path='/usr/src/python-openzwave-0.2.6/openzwave/config',
+            #config_path='/usr/src/python-openzwave-0.3.0-beta2/openzwave/config',
+            config_path='/usr/src/python-openzwave-{0}/openzwave/config'.format(os.environ['PYOZW_VERSION']),
             user_path='./user-dir',
             cmd_line=''
         )
@@ -99,7 +103,16 @@ class AlidronOZW(object):
             return
 
         signal = self.signals[name]
-        signal['isac_value'].value = value.data
+        
+        data = value.data
+        logger.info('data type is %s', type(data))
+        if type(data) is str:
+            try:
+                data.decode()
+            except UnicodeDecodeError:
+                data = binascii.b2a_base64(data)
+                
+        signal['isac_value'].value = data
 
     def louie_ctrl_message(self, state, message, network, controller):
         logger.debug('Controller message : %s.', message)
@@ -176,13 +189,21 @@ class AlidronOZW(object):
             if 'isac_value' in signal:
                 continue
 
+            data = signal['node_value'][1].data
+            logger.info('data type is %s', type(data))
+            if type(data) is str:
+                try:
+                    data.decode()
+                except UnicodeDecodeError:
+                    data = binascii.b2a_base64(data)
+            
             signal['isac_value'] = IsacValue(
                 self.isac_node,
                 name,
-                signal['node_value'][1].data,
+                data,
                 metadata=signal['metadata']
             )
-            signal['isac_value'].register(_set_data)
+            signal['isac_value'].observers += _set_data
 
             gevent.sleep(0.01)
 
@@ -224,6 +245,8 @@ class AlidronOZW(object):
     def shutdown(self):
         self.network.stop()
         logger.info('Stopped network')
+        self.network.destroy()
+        logger.info('Destroyed network')
         self.isac_node.shutdown()
         logger.info('Stopped ISAC node')
 
