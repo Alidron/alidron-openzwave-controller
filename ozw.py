@@ -35,7 +35,8 @@ class AlidronOZW(object):
             device,
             #config_path='/usr/src/python-openzwave-0.2.6/openzwave/config',
             #config_path='/usr/src/python-openzwave-0.3.0-beta2/openzwave/config',
-            config_path='/usr/src/python-openzwave-{0}/openzwave/config'.format(os.environ['PYOZW_VERSION']),
+            #config_path='/usr/src/python-openzwave-{0}/openzwave/config'.format(os.environ['PYOZW_VERSION']),
+            config_path='/usr/share/openzwave/config'),
             user_path='./user-dir',
             cmd_line=''
         )
