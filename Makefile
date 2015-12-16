@@ -14,20 +14,20 @@ clean:
 	docker rmi $(image_name) || true
 
 clean-dangling:
-	docker rmi $(docker images -q -f dangling=true) || true
+	docker rmi `docker images -q -f dangling=true` || true
 
 build: clean-dangling
 	docker build --force-rm=true -t $(image_name) .
-	docker tag -f $(image_name) $(registry)/$(image_name)
 
 build-rpi: clean-dangling
 	docker build --force-rm=true -t $(rpi_image_name) -f Dockerfile-rpi .
-	docker tag -f $(rpi_image_name) $(registry)/$(rpi_image_name)
 
 push:
+	docker tag -f $(image_name) $(registry)/$(image_name)
 	docker push $(registry)/$(image_name)
 
 push-rpi:
+	docker tag -f $(rpi_image_name) $(registry)/$(rpi_image_name)
 	docker push $(registry)/$(rpi_image_name)
 
 pull:
