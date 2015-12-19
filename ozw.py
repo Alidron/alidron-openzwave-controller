@@ -4,6 +4,7 @@ import os
 import signal
 import sys
 from functools import partial
+from pprint import pprint as pp, pformat as pf
 
 from louie import dispatcher
 # from openzwave.node import ZWaveNode
@@ -19,7 +20,7 @@ from isac import IsacNode, IsacValue
 
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+# logging.basicConfig(level=logging.WARNING)
 
 logger.info('Starting')
 
@@ -36,7 +37,7 @@ class AlidronOZW(object):
             #config_path='/usr/src/python-openzwave-0.2.6/openzwave/config',
             #config_path='/usr/src/python-openzwave-0.3.0-beta2/openzwave/config',
             #config_path='/usr/src/python-openzwave-{0}/openzwave/config'.format(os.environ['PYOZW_VERSION']),
-            config_path='/usr/share/openzwave/config'),
+            config_path='/usr/share/openzwave/config',
             user_path='./user-dir',
             cmd_line=''
         )
@@ -95,16 +96,16 @@ class AlidronOZW(object):
         self.register_all_values(node)
 
     def louie_value_update(self, network, node, value):
-        name = self._make_name(node, value)
+        uri = self._make_uri(node, value)
 
-        logger.debug('Value update for %s : %s.', name, value.data)
+        logger.warning('Value update for %s : %s.', uri, value.data)
 
-        if name not in self.signals:
-            logger.info('%s not yet registered, skipping', name)
+        if uri not in self.signals:
+            logger.info('%s not yet registered, skipping', uri)
             return
 
-        signal = self.signals[name]
-        
+        signal = self.signals[uri]
+
         data = value.data
         logger.info('data type is %s', type(data))
         if type(data) is str:
@@ -112,7 +113,7 @@ class AlidronOZW(object):
                 data.decode()
             except UnicodeDecodeError:
                 data = binascii.b2a_base64(data)
-                
+
         signal['isac_value'].value = data
 
     def louie_ctrl_message(self, state, message, network, controller):
@@ -134,22 +135,22 @@ class AlidronOZW(object):
         #
         #        value.data = args[0]
 
-        def _set_data(name, value, ts):
-            if name not in self.signals:
+        def _set_data(uri, value, ts):
+            if uri not in self.signals:
                 logger.error(
                     'Received an update from isac \
                     for a signal we don\'t know?! %s',
-                    name
+                    uri
                 )
                 return
 
-            signal = self.signals[name]
+            signal = self.signals[uri]
 
             if signal['node_value'][1].is_read_only:
                 logger.error(
                     'Signal %s is read only but we received an update \
                     from isac to write a value, %s, to it',
-                    name,
+                    uri,
                     value
                 )
                 return
@@ -157,17 +158,17 @@ class AlidronOZW(object):
             signal['node_value'][1].data = value
 
         for value in node.values.values():
-            name = self._make_name(node, value, True)
+            uri = self._make_uri(node, value, True)
 
-            if name in self.signals:
-                logger.info('%s already registered', name)
+            if uri in self.signals:
+                logger.info('%s already registered', uri)
                 continue
             else:
-                logger.info('Registering signal %s', name)
+                logger.info('Registering signal %s', uri)
 
-            self.signals[name] = {
+            self.signals[uri] = {
                 'metadata': {
-                    'name': name,
+                    'uri': uri,
                     'label': value.label,
                     'help': value.help,
                     'max': value.max,
@@ -186,7 +187,7 @@ class AlidronOZW(object):
                 'node_value': (node, value),
             }
 
-        for name, signal in self.signals.items():
+        for uri, signal in self.signals.items():
             if 'isac_value' in signal:
                 continue
 
@@ -197,12 +198,15 @@ class AlidronOZW(object):
                     data.decode()
                 except UnicodeDecodeError:
                     data = binascii.b2a_base64(data)
-            
+
+            #print '>>>> Creating IV', uri, data
             signal['isac_value'] = IsacValue(
                 self.isac_node,
-                name,
+                str(uri),
                 data,
-                metadata=signal['metadata']
+                metadata=signal['metadata'],
+                survey_last_value=False,
+                survey_static_tags=False
             )
             signal['isac_value'].observers += _set_data
 
@@ -217,31 +221,34 @@ class AlidronOZW(object):
     def _replace_all(s, olds, new):
         return reduce(lambda s, old: s.replace(old, new), list(olds), s)
 
-    def _make_name(self, node, value, check_in_list=False):
+    def _make_uri(self, node, value, check_in_list):
+
+        def _values_by_index(values):
+            per_idx = {}
+            for value in values:
+                idx = value.index
+                if idx not in per_idx:
+                    per_idx[idx] = []
+                per_idx[idx].append(value)
+            return per_idx
+
+        values_by_idx = _values_by_index(node.get_values(class_id=value.command_class).values())
+        is_multi_instance = len(values_by_idx[value.index]) > 1
+
         cmd_class = node.get_command_class_as_string(value.command_class)
         cmd_class = cmd_class.replace('COMMAND_CLASS_', '').lower()
 
-        name = '.'.join([
-            'ozw',
-            node.name,
-            cmd_class,
-            self._replace_all(value.label.lower(), ' /()%', '_')
-        ])
-        if value.is_write_only:
-            name += '_w'
-        if value.is_read_only:
-            name += '_r'
+        node_name = node.name if node.name else str(node.node_id)
+        label = self._replace_all(value.label.lower(), ' /()%:', '_').strip('_')
 
-        if value.instance > 1:
-            if check_in_list and name in self.signals:
-                signal1 = self.signals[name]
-                del self.signals[name]
-                signal1['metadata']['name'] += '_1'
-                self.signals[name + '_1'] = signal1
+        if is_multi_instance:
+            uri = 'zwave://%s.%s/%s/%d/%s' % (
+                node._network.home_id_str, node_name, cmd_class, value.instance, label)
+        else:
+            uri = 'zwave://%s.%s/%s/%s' % (
+                node._network.home_id_str, node_name, cmd_class, label)
 
-            name += '_' + str(value.instance)
-
-        return name
+        return uri
 
     def shutdown(self):
         self.network.stop()
