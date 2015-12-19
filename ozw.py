@@ -135,7 +135,8 @@ class AlidronOZW(object):
         #
         #        value.data = args[0]
 
-        def _set_data(uri, value, ts):
+        def _set_data(isac_value, value, ts, tags):
+            uri = isac_value.uri
             if uri not in self.signals:
                 logger.error(
                     'Received an update from isac \
