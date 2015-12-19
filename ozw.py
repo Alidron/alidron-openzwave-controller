@@ -179,10 +179,24 @@ class AlidronOZW(object):
                     'is_read_only': value.is_read_only,
                     'is_write_only': value.is_write_only,
                     'instance': value.instance,
+                    'index': value.index,
+                    'value_id': value.value_id,
+                    'node_id': node.node_id,
+                    'location': node.location,
+                    'home_id': node._network.home_id,
+                    'command_class': node.get_command_class_as_string(value.command_class),
                     'data_items':
                         list(value.data_items)
                         if type(value.data_items) is set
                         else value.data_items,
+                },
+                'static_tags': {
+                    'home_id': node._network.home_id,
+                    'location': node.location,
+                    'node_id': node.node_id,
+                    'command_class': node.get_command_class_as_string(value.command_class),
+                    'index': value.index,
+                    'instance': value.instance,
                 },
                 'node_value': (node, value),
             }
@@ -204,6 +218,7 @@ class AlidronOZW(object):
                 self.isac_node,
                 str(uri),
                 data,
+                static_tags=signal['static_tags'],
                 metadata=signal['metadata'],
                 survey_last_value=False,
                 survey_static_tags=False
