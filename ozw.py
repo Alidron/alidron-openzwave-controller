@@ -158,7 +158,7 @@ class AlidronOZW(object):
             signal['node_value'][1].data = value
 
         for value in node.values.values():
-            uri = self._make_uri(node, value, True)
+            uri = self._make_uri(node, value)
 
             if uri in self.signals:
                 logger.info('%s already registered', uri)
@@ -236,7 +236,7 @@ class AlidronOZW(object):
     def _replace_all(s, olds, new):
         return reduce(lambda s, old: s.replace(old, new), list(olds), s)
 
-    def _make_uri(self, node, value, check_in_list):
+    def _make_uri(self, node, value):
 
         def _values_by_index(values):
             per_idx = {}
@@ -247,7 +247,17 @@ class AlidronOZW(object):
                 per_idx[idx].append(value)
             return per_idx
 
-        values_by_idx = _values_by_index(node.get_values(class_id=value.command_class).values())
+        ok = False
+        while not ok:
+            try:
+                values_by_idx = _values_by_index(node.get_values(class_id=value.command_class).values())
+                ok = True
+            except RuntimeError as ex:
+                if ex.message == 'dictionary changed size during iteration':
+                    continue
+                else:
+                    raise
+
         is_multi_instance = len(values_by_idx[value.index]) > 1
 
         cmd_class = node.get_command_class_as_string(value.command_class)
