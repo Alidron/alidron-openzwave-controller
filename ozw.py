@@ -20,7 +20,7 @@ from isac import IsacNode, IsacValue
 
 
 logger = logging.getLogger(__name__)
-# logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.WARNING)
 
 logger.info('Starting')
 
@@ -68,7 +68,7 @@ class AlidronOZW(object):
         self.register_all_nodes()
 
     def louie_network_started(self, network):
-        logger.info('//////////// ZWave network is started ////////////')
+        logger.warning('//////////// ZWave network is started ////////////')
         logger.debug(
             'OpenZWave network is started : \
             homeid %0.8x - %d nodes were found.',
@@ -76,10 +76,10 @@ class AlidronOZW(object):
         )
 
     def louie_network_resetted(self, network):
-        logger.info('OpenZWave network is resetted.')
+        logger.warning('OpenZWave network is resetted.')
 
     def louie_network_ready(self, network):
-        logger.info('//////////// ZWave network is ready ////////////')
+        logger.warning('//////////// ZWave network is ready ////////////')
         logger.debug(
             'ZWave network is ready : %d nodes were found.',
             network.nodes_count
@@ -98,7 +98,7 @@ class AlidronOZW(object):
     def louie_value_update(self, network, node, value):
         uri = self._make_uri(node, value)
 
-        logger.warning('Value update for %s : %s.', uri, value.data)
+        logger.info('Value update for %s : %s.', uri, value.data)
 
         if uri not in self.signals:
             logger.info('%s not yet registered, skipping', uri)
@@ -117,7 +117,7 @@ class AlidronOZW(object):
         signal['isac_value'].value = data
 
     def louie_ctrl_message(self, state, message, network, controller):
-        logger.debug('Controller message : %s.', message)
+        logger.warning('Controller message : %s.', message)
 
     def register_all_values(self, node):
         # def _data(value, *args, **kwargs):
