@@ -1,0 +1,32 @@
+stages:
+    - build
+    - deploy
+    
+build:
+    stage: build
+    tags:
+        - x86
+    script:
+        - make build
+    
+build-rpi:
+    stage: build
+    tags:
+        - rpi
+    script:
+        - make build-rpi
+        
+deploy:
+    stage: deploy
+    tags:
+        - x86
+    script:
+        - make push
+        
+deploy-rpi:
+    stage: deploy
+    tags:
+        - rpi
+    script:
+        - make push-rpi
+        
