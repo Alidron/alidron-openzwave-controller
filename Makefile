@@ -29,7 +29,7 @@ push:
 	docker push $(registry)/$(image_name)
 
 push-rpi:
-	docker tag -f $(rpi_image_name) $(registry)/$(rpi_image_name)
+	docker tag -f $(rpi_image_name) $(rpi_registry)/$(rpi_image_name)
 	docker push $(rpi_registry)/$(rpi_image_name)
 
 pull:
@@ -37,7 +37,7 @@ pull:
 	docker tag $(registry)/$(image_name) $(image_name)
 
 pull-rpi:
-	docker pull $(registry)/$(rpi_image_name)
+	docker pull $(rpi_registry)/$(rpi_image_name)
 	docker tag $(rpi_registry)/$(rpi_image_name) $(rpi_image_name)
 
 run-bash:
