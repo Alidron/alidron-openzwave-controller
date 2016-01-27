@@ -5,6 +5,7 @@ registry = neuron.local:6666
 container_name = ozw-ctrl
 
 run_args = --net=alidron -p 5555:5555 -p 6666:6666 --device=/dev/ttyACM0:/dev/ttyACM0 -v $(CURDIR)/volume:/usr/src/alidron-openzwave-controller/user-dir # -v /media/nas/Homes/Axel/Development/Alidron/ZWave/axel/alidron-isac:/usr/src/alidron-isac
+run_alidron_test_args = --net=alidron-test -p 5555:5555 -p 6666:6666 --device=/dev/ttyACM0:/dev/ttyACM0 -v $(CURDIR)/volume:/usr/src/alidron-openzwave-controller/user-dir -e PYTHONUNBUFFERED=1
 exec_args = python ozw.py /dev/ttyACM0
 exec_cmd_args = python ozw_cmd.py /dev/ttyACM0
 
@@ -39,13 +40,16 @@ pull-rpi:
 	docker tag $(registry)/$(rpi_image_name) $(rpi_image_name)
 
 run-bash:
-	docker run -it --rm --name=$(container_name) $(run_args) $(image_name) bash
+	docker run -it --rm --name=$(container_name) $(run_alidron_test_args) $(image_name) bash
 
 run-bash-rpi:
 	docker run -it --rm --name=$(container_name) $(run_args) $(rpi_image_name) bash
 
 run:
 	docker run -d --name=$(container_name) $(run_args) $(image_name) $(exec_args)
+
+run-alidron-test:
+	docker run -d --name=$(container_name) $(run_alidron_test_args) $(image_name) $(exec_args)
 
 run-rpi:
 	docker run -d --name=$(container_name) $(run_args) $(rpi_image_name) $(exec_args)
