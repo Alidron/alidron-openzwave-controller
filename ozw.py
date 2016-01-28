@@ -24,9 +24,6 @@ from functools import partial
 from pprint import pprint as pp, pformat as pf
 
 from louie import dispatcher, All
-# from openzwave.node import ZWaveNode
-# from openzwave.value import ZWaveValue
-# from openzwave.scene import ZWaveScene
 from openzwave.controller import ZWaveController
 from openzwave.network import ZWaveNetwork
 from openzwave.option import ZWaveOption
@@ -54,9 +51,6 @@ class AlidronOZW(object):
 
         self.options = ZWaveOption(
             device,
-            #config_path='/usr/src/python-openzwave-0.2.6/openzwave/config',
-            #config_path='/usr/src/python-openzwave-0.3.0-beta2/openzwave/config',
-            #config_path='/usr/src/python-openzwave-{0}/openzwave/config'.format(os.environ['PYOZW_VERSION']),
             config_path='/usr/share/openzwave/config',
             user_path='./user-dir',
             cmd_line=''
