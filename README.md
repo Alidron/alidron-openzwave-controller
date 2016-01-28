@@ -1,9 +1,9 @@
-Openzwave controller for Alidron
+OpenZWave controller for Alidron
 ================================
 
 [![build status](https://git.tinigrifi.org/ci/projects/8/status.png?ref=master)](https://git.tinigrifi.org/ci/projects/8?ref=master) [![Gitter](https://badges.gitter.im/gitterHQ/gitter.svg)](https://gitter.im/Alidron/talk)
 
-This is an OpenZwave controller for Alidron. It bridges data on a ZWave network with data on an Alidron network.
+This is an OpenZWave controller for Alidron. It bridges data on a ZWave network with data on an Alidron network.
 
 The Docker images are accessibles on:
 * x86: [alidron/alidron-openzwave-controller](https://hub.docker.com/r/alidron/alidron-openzwave-controller/)
