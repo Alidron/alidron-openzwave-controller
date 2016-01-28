@@ -21,7 +21,7 @@ private_rpi_registry = neuron.local:6667
 
 container_name = ozw-ctrl
 
-run_args = --net=host -p 5555:5555 -p 6666:6666 --device=/dev/ttyACM0:/dev/ttyACM0 -v $(CURDIR)/volume:/usr/src/alidron-openzwave-controller/user-dir
+run_args = --net=alidron -p 5555:5555 -p 6666:6666 --device=/dev/ttyACM0:/dev/ttyACM0 -v $(CURDIR)/volume:/usr/src/alidron-openzwave-controller/user-dir
 run_alidron_test_args = --net=alidron-test -p 5555:5555 -p 6666:6666 --device=/dev/ttyACM0:/dev/ttyACM0 -v $(CURDIR)/volume:/usr/src/alidron-openzwave-controller/user-dir -e PYTHONUNBUFFERED=1
 exec_args = python ozw.py /dev/ttyACM0
 exec_cmd_args = python ozw_cmd.py /dev/ttyACM0
